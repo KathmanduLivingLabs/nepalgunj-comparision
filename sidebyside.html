@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nepalgunj Compare Side by Side</title>
+  <meta charset="utf-8" />
+  <script src="http://cdn.leafletjs.com/leaflet-0.6.1/leaflet.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <style>
+    @import url(http://cdn.leafletjs.com/leaflet-0.6.1/leaflet.css);
+    .mapContainer{
+      display:inline-block;
+      width:50%;
+      height: 800px;
+    }
+  </style>
+</head>
+<body>
+  <script>
+  //initialise an array for the automatic visualisation
+  var maps_ = [], numMaps = 2;
+  for(var i=0;i<numMaps;i++)maps_.push(i)
+  //set the heading
+  d3.select('body').append('div')
+    .style('text-align','center')
+    .style('font-size','24pt')
+    .append('text')
+      .text('Nepalgunj Before After Maps');
+  //add a map-Container for each element in the initial array
+  d3.select('body').selectAll('.maps').data(maps_).enter().append('div')
+    .attr('class','mapContainer')
+    .attr('id',function(d){return 'map'+d});
+  //make a map for each element in the initial array AND return the corresponding map-Elements
+  var maps = maps_.map(showMap);
+
+  //function, that adds a leaflet-map to each map-Container
+  function showMap(d){
+    //initial view
+    var map = L.map('map'+d).setView([28.0546,81.6383], 14);
+    
+    var oldMap = L.tileLayer('oldtiles/{z}/{x}/{y}.png', {
+      	attribution: 'OSM Contributors',
+      	minZoom: 11,
+      	maxZoom: 17
+    	}).addTo(map);
+    
+    var newMap = L.tileLayer('newtiles/{z}/{x}/{y}.png', {
+      	attribution: 'OSM Contributors',
+      	minZoom: 11,
+      	maxZoom: 17
+    	}).addTo(map);
+
+    //add the favored layers to an JSON-object
+    var baseLayers = {"January 2015": oldMap,"Feburary 2018": newMap};
+    //add the layer-JSON-object to a layer-control AND add it to the map
+    L.control.layers(baseLayers).addTo(map);
+    //add the automatic map-view-updating to the corresponding events
+    map.on("viewreset", reset);
+    map.on("drag", reset);
+    return map;
+  }
+  function reset(e){
+    var current = this._container.id.replace('map','');
+    maps_.forEach(function(d){ 
+      if(d!=current){
+        maps[d].setView(maps[current].getCenter(), maps[current].getZoom())
+      }
+    });    
+  }
+
+</script>
+ </body>
+</html>
